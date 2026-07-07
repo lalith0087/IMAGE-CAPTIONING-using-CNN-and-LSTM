@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Captioning - CNN + LSTM</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; text-align: center; color: #1a1a1a; background-color: #ffffff; }
+    img { max-width: 100%; margin-top: 20px; border-radius: 8px; }
+    .caption { font-size: 1.2em; margin-top: 16px; font-style: italic; }
+    input[type="file"] { margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>Image Captioning</h1>
+  <p>CNN (InceptionV3) encoder + LSTM decoder, trained on Flickr8k.</p>
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="image" accept="image/png, image/jpeg" required>
+    <br>
+    <button type="submit">Generate Caption</button>
+  </form>
+
+  {% if image_url %}
+    <img src="{{ image_url }}" alt="Uploaded image">
+  {% endif %}
+
+  {% if caption %}
+    <p class="caption">"{{ caption }}"</p>
+  {% endif %}
+</body>
+</html>

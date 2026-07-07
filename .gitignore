@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+
+# Dataset (download separately, see README)
+data/Flickr8k_Dataset/
+data/Flickr8k.token.txt
+data/vocab.pkl
+data/features/
+
+# Trained model checkpoints (large binaries, retrain locally)
+checkpoints/*.pth
+
+# Web demo uploads
+webapp/static/uploads/
+
+.DS_Store
