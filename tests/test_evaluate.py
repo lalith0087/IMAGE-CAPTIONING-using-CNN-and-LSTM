@@ -47,3 +47,19 @@ def test_bleu_perfect_and_disjoint():
 def test_distinct_captions_flags_mode_collapse():
     assert distinct_pct(["a dog"] * 10) == 10.0
     assert distinct_pct(["a", "b", "c", "d"]) == 100.0
+
+
+def test_fingerprint_depends_on_the_set_not_the_order():
+    from evaluate import fingerprint
+    assert fingerprint(["b.jpg", "a.jpg"]) == fingerprint(["a.jpg", "b.jpg"])
+    assert fingerprint(["a.jpg", "b.jpg"]) != fingerprint(["a.jpg", "c.jpg"])
+    assert len(fingerprint(["a.jpg"])) == 16
+
+
+def test_verify_split_rejects_a_different_dataset_copy():
+    import pytest
+    from evaluate import verify_split
+    verify_split("abc", "abc")                                  # match: fine
+    verify_split("abc", None)                                   # nothing expected: fine
+    with pytest.raises(ValueError, match="different train/val split"):
+        verify_split("abc", "xyz")

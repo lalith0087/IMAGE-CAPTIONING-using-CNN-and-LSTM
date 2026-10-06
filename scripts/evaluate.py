@@ -9,6 +9,7 @@ Usage:
     python scripts/evaluate.py --limit 64            # quick smoke test
 """
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -37,9 +38,23 @@ def val_indices(n_images, val_split=0.1, seed=42):
 
 
 def heldout_images(val_split=0.1, seed=42):
-    """Filenames in the validation split (same filtering as CaptionDataset: image must exist)."""
+    """(held-out filenames, total image count), filtered like CaptionDataset: the image must exist."""
     files = sorted(f for f in load_captions() if os.path.exists(os.path.join(IMAGE_DIR, f)))
-    return [files[i] for i in val_indices(len(files), val_split, seed)]
+    return [files[i] for i in val_indices(len(files), val_split, seed)], len(files)
+
+
+def fingerprint(files):
+    """Short hash of the held-out image names. Equal only when the split is identical, i.e. the same
+    dataset copy (same filenames) as the one the model was trained on."""
+    return hashlib.sha256("\n".join(sorted(files)).encode()).hexdigest()[:16]
+
+
+def verify_split(actual, expected):
+    """Fail loudly if this machine's held-out set is not the one the model was trained against."""
+    if expected and actual != expected:
+        raise ValueError(f"held-out fingerprint {actual} != expected {expected}: this dataset copy gives a different "
+                         "train/val split than the training run, so the score would not be a true held-out score "
+                         "(some scored images may have been trained on). Use the same Flickr8k copy as training.")
 
 
 @torch.no_grad()
@@ -110,6 +125,7 @@ def main():
     parser.add_argument("--max-len", type=int, default=20)
     parser.add_argument("--limit", type=int, help="score only the first N held-out images (smoke test)")
     parser.add_argument("--samples", type=int, default=8)
+    parser.add_argument("--expect-fingerprint", help="abort unless the held-out set matches this fingerprint (see README)")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -117,7 +133,13 @@ def main():
     encoder, decoder = load_models(args.checkpoint, vocab, device)
     epoch = torch.load(args.checkpoint, map_location="cpu").get("epoch")
 
-    files = heldout_images(args.val_split, args.seed)[: args.limit]
+    held_out, n_images = heldout_images(args.val_split, args.seed)
+    split_fp = fingerprint(held_out)
+    try:
+        verify_split(split_fp, args.expect_fingerprint)
+    except ValueError as err:
+        sys.exit(f"ERROR: {err}")
+    files = held_out[: args.limit]
     captions = load_captions()
     print(f"Scoring {len(files)} held-out images on {device} (checkpoint epoch {epoch})")
 
@@ -132,7 +154,8 @@ def main():
 
     os.makedirs(args.out_dir, exist_ok=True)
     metrics = {**{k: round(v, 4) for k, v in bleu.items()}, "n_images": len(files), "checkpoint": os.path.basename(args.checkpoint),
-               "epoch": epoch, "decoding": f"greedy, max_len={args.max_len}", "split": f"seed={args.seed}, val_split={args.val_split}",
+               "epoch": epoch, "decoding": f"greedy, max_len={args.max_len}", "split": f"seed={args.seed}, val_split={args.val_split}", "heldout_fingerprint": split_fp,
+               "dataset": {"images": n_images, "caption_lines": sum(len(v) for v in captions.values())},
                "avg_caption_words": round(sum(len(p.split()) for p in preds) / max(len(preds), 1), 2),
                "distinct_captions_pct": round(distinct_pct(preds), 1)}
     with open(os.path.join(args.out_dir, "metrics.json"), "w") as f:

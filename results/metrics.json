@@ -1,0 +1,18 @@
+{
+  "bleu1": 0.4976,
+  "bleu2": 0.3221,
+  "bleu3": 0.2015,
+  "bleu4": 0.1276,
+  "n_images": 809,
+  "checkpoint": "best.pth",
+  "epoch": 20,
+  "decoding": "greedy, max_len=20",
+  "split": "seed=42, val_split=0.1",
+  "avg_caption_words": 12.42,
+  "distinct_captions_pct": 54.1,
+  "heldout_fingerprint": "2a827395ba5d8c39",
+  "dataset": {
+    "images": 8091,
+    "caption_lines": 40460
+  }
+}

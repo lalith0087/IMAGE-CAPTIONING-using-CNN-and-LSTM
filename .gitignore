@@ -14,3 +14,4 @@ checkpoints/*.pth
 webapp/static/uploads/
 
 .DS_Store
+*.zip
