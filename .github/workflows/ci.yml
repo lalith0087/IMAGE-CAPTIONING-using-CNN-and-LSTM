@@ -1,0 +1,18 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      # CPU-only PyTorch keeps the install small; tests use no GPU, no dataset and no pretrained weights.
+      - run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install pytest nltk pillow
+      - run: pytest -q
+      - run: python -m compileall -q scripts models webapp   # catches syntax errors in files the tests don't import

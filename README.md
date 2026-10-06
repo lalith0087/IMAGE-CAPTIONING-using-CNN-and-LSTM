@@ -1,5 +1,7 @@
 # Image Captioning using CNN + LSTM
 
+[![CI](https://github.com/lalith0087/IMAGE-CAPTIONING-using-CNN-and-LSTM/actions/workflows/ci.yml/badge.svg)](https://github.com/lalith0087/IMAGE-CAPTIONING-using-CNN-and-LSTM/actions/workflows/ci.yml)
+
 Generates natural-language captions for images using a pretrained CNN
 (InceptionV3) encoder and an LSTM decoder, trained on the Flickr8k dataset.
 
