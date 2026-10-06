@@ -45,7 +45,11 @@ def main():
     parser.add_argument("--max-len", type=int, default=20)
     args = parser.parse_args()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(
+        "cuda" if torch.cuda.is_available()
+        else "mps" if torch.backends.mps.is_available()
+        else "cpu"
+    )
     vocab = Vocabulary.load(VOCAB_FILE)
 
     encoder, decoder = load_models(args.checkpoint, vocab, device)

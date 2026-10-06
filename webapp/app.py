@@ -18,7 +18,11 @@ CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "..", "checkpoints", "
 app = Flask(__name__)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(
+    "cuda" if torch.cuda.is_available()
+    else "mps" if torch.backends.mps.is_available()
+    else "cpu"
+)
 vocab = Vocabulary.load(VOCAB_FILE)
 encoder, decoder = load_models(CHECKPOINT_PATH, vocab, device)
 
