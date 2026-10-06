@@ -59,6 +59,25 @@ python webapp/app.py
 
 Then open http://localhost:5000, upload an image, and see the generated caption.
 
+## 7. Evaluate (BLEU)
+
+```
+python scripts/evaluate.py                 # BLEU-1..4 on the held-out validation split
+python scripts/evaluate.py --limit 64      # quick smoke test
+```
+
+`train.py` holds out 10% of the images with a fixed seed (42). `evaluate.py` rebuilds exactly that
+split (809 images, none seen in training), decodes each image greedily and scores the caption
+against all five human references with corpus BLEU (NLTK). It writes `results/metrics.json`,
+`results/captions.json` and `results/samples.png` (model caption next to a human one). The metrics
+also report the share of distinct captions, which exposes a model that repeats a few generic sentences.
+
+The same split picks `best.pth` (lowest validation loss), so these are validation scores, not a
+fully untouched test set. To train and evaluate on a free GPU instead of your laptop, open
+[`notebooks/colab_train_eval.ipynb`](notebooks/colab_train_eval.ipynb) in Google Colab.
+Tests for the evaluation code (`pytest tests`) check that the batched decoder matches the
+single-image decoder and that the split matches training.
+
 ## Architecture
 
 - **Encoder**: pretrained InceptionV3 (ImageNet weights). Layers up to
